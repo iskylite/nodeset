@@ -1,6 +1,6 @@
 package nodeset
 
-func Expand(nodestr string) (string, error) {
+func Merge(nodestr string) (string, error) {
 	t1, err := NewNodeSet(nodestr)
 	if err != nil {
 		return "", err
@@ -8,7 +8,7 @@ func Expand(nodestr string) (string, error) {
 	return t1.String(), nil
 }
 
-func Merge(nodestr string) ([]string, error) {
+func Expand(nodestr string) ([]string, error) {
 	n1, err := NewNodeSet(nodestr)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func Merge(nodestr string) ([]string, error) {
 	return result, nil
 }
 
-func Iter(nodestr string) (*NodeSetIterator, error) {
+func Yield(nodestr string) (*NodeSetIterator, error) {
 	n1, err := NewNodeSet(nodestr)
 	if err != nil {
 		return nil, err
