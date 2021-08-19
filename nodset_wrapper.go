@@ -1,7 +1,9 @@
 package nodeset
 
-func Merge(nodestr string) (string, error) {
-	t1, err := NewNodeSet(nodestr)
+import "strings"
+
+func Merge(nodestr ...string) (string, error) {
+	t1, err := NewNodeSet(strings.Join(nodestr, ","))
 	if err != nil {
 		return "", err
 	}
