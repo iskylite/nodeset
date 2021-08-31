@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -36,10 +35,6 @@ type Slice struct {
 	pad   int
 }
 
-type Vect struct {
-	ivect []int
-}
-
 func NewRangeSet(pattern string) (rs *RangeSet, err error) {
 	rs = &RangeSet{}
 	if len(pattern) == 0 {
@@ -64,7 +59,7 @@ func (rs *RangeSet) AddString(subrange string) (err error) {
 
 	baserange := subrange
 	step := 1
-	if strings.Index(subrange, "/") >= 0 {
+	if strings.Contains(subrange, "/") {
 		parts := strings.SplitN(subrange, "/", 2)
 		baserange = parts[0]
 		if len(parts) != 2 || parts[1] == "" {
@@ -80,7 +75,7 @@ func (rs *RangeSet) AddString(subrange string) (err error) {
 	var start, stop, pad int
 	parts := []string{baserange}
 
-	if strings.Index(baserange, "-") < 0 {
+	if !strings.Contains(baserange, "-") {
 		if step != 1 {
 			return fmt.Errorf("invalid step usage %s - %w", subrange, ErrParseRangeSet)
 		}
@@ -116,7 +111,7 @@ func (rs *RangeSet) AddString(subrange string) (err error) {
 		stop = start
 	}
 
-	if stop > math.MaxInt64 || start > stop || step < 1 {
+	if start > stop || step < 1 {
 		return fmt.Errorf("invalid value in range %s - %w", subrange, ErrParseRangeSet)
 	}
 
@@ -132,9 +127,6 @@ func (rs *RangeSet) AddSlice(slice *Slice) error {
 	}
 	if slice.pad < 0 {
 		return fmt.Errorf("invalid range padding < 0 - %w", ErrInvalidRangeSet)
-	}
-	if slice.stop-slice.start > math.MaxInt64 {
-		return fmt.Errorf("range too large - %w", ErrInvalidRangeSet)
 	}
 
 	if slice.pad > 0 && rs.padding == 0 {
@@ -554,7 +546,7 @@ func (nd *RangeSetND) FormatList() [][]interface{} {
 			if rs.Len() > 1 {
 				rsets = append(rsets, fmt.Sprintf("[%s]", rs.String()))
 			} else {
-				rsets = append(rsets, fmt.Sprintf("%s", rs.String()))
+				rsets = append(rsets, rs.String())
 
 			}
 		}

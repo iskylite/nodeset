@@ -25,11 +25,11 @@ type NodeSet struct {
 }
 
 func EmptyNodeSet() *NodeSet {
-	return &NodeSet{patterns: make(map[string]*RangeSetND, 0)}
+	return &NodeSet{patterns: make(map[string]*RangeSetND)}
 }
 
 func NewNodeSet(nodestr string) (*NodeSet, error) {
-	ns := &NodeSet{patterns: make(map[string]*RangeSetND, 0)}
+	ns := &NodeSet{patterns: make(map[string]*RangeSetND)}
 
 	if nodestr == "" {
 		// Empty nodeset
@@ -51,12 +51,13 @@ func (ns *NodeSet) Add(nodestr string) error {
 	}
 
 	ranges := rangeSetRegexp.FindAllStringSubmatch(nodestr, -1)
+
 	patterns := rangeSetRegexp.ReplaceAllString(nodestr, "%s")
 
-	if strings.Index(patterns, "[") != -1 {
+	if strings.Contains(patterns, "[") {
 		return fmt.Errorf("unbalanced '[' found while parsing %s - %w", nodestr, ErrParseNodeSet)
 	}
-	if strings.Index(patterns, "]") != -1 {
+	if strings.Contains(patterns, "]") {
 		return fmt.Errorf("unbalanced ']' found while parsing %s - %w", nodestr, ErrParseNodeSet)
 	}
 
@@ -121,6 +122,13 @@ func (ns *NodeSet) toStringList() []string {
 	}
 
 	sort.SliceStable(items, func(i, j int) bool {
+		// fix panic if rangeSet is nil
+		if items[i].rangeSet == nil {
+			return true
+		}
+		if items[j].rangeSet == nil {
+			return false
+		}
 		return items[i].rangeSet.Len() > items[j].rangeSet.Len()
 	})
 

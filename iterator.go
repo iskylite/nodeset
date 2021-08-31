@@ -26,11 +26,7 @@ type RangeSetNDIterator struct {
 func (i *NodeSetIterator) Next() bool {
 	i.current++
 
-	if i.current < len(i.nodes) {
-		return true
-	}
-
-	return false
+	return i.current < len(i.nodes)
 }
 
 func (i *NodeSetIterator) Len() int {
@@ -52,11 +48,7 @@ func NewRangeSetNDIterator() *RangeSetNDIterator {
 func (i *RangeSetNDIterator) Next() bool {
 	i.current++
 
-	if i.current < len(i.vects) {
-		return true
-	}
-
-	return false
+	return i.current < len(i.vects)
 }
 
 func (i *RangeSetNDIterator) Len() int {
