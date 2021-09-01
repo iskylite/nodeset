@@ -177,6 +177,13 @@ func (ns *NodeSet) Iterator() *NodeSetIterator {
 	}
 
 	sort.SliceStable(items, func(i, j int) bool {
+		// fix panic if rangeSet is nil
+		if items[i].rangeSet == nil {
+			return true
+		}
+		if items[j].rangeSet == nil {
+			return false
+		}
 		return items[i].rangeSet.Len() > items[j].rangeSet.Len()
 	})
 
