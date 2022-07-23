@@ -48,7 +48,9 @@ func NewRangeSet(pattern string) (rs *RangeSet, err error) {
 			return nil, err
 		}
 	}
-
+	// if pattern == "16" {
+	// 	rs.padding = 2
+	// }
 	return rs, nil
 }
 
@@ -91,16 +93,18 @@ func (rs *RangeSet) AddString(subrange string) (err error) {
 		return fmt.Errorf("cannont convert starting range to integer %s - %w", parts[0], ErrParseRangeSet)
 	}
 
-	if start != 0 {
-		begins := strings.TrimLeft(parts[0], "0")
-		if len(parts[0])-len(begins) > 0 {
-			pad = len(parts[0])
-		}
-	} else {
-		if len(parts[0]) > 1 {
-			pad = len(parts[0])
-		}
-	}
+	// if start != 0 {
+	// 	begins := strings.TrimLeft(parts[0], "0")
+	// 	if len(parts[0])-len(begins) > 0 {
+	// 		pad = len(parts[0])
+	// 	}
+	// } else {
+	// 	if len(parts[0]) > 1 {
+	// 		pad = len(parts[0])
+	// 	}
+	// }
+	// pad is origin part length event has a 0 prefix
+	pad = len(parts[0])
 
 	if len(parts) == 2 {
 		stop, err = strconv.Atoi(parts[1])
@@ -132,7 +136,6 @@ func (rs *RangeSet) AddSlice(slice *Slice) error {
 	if slice.pad > 0 && rs.padding == 0 {
 		rs.padding = slice.pad
 	}
-
 	rs.update(slice)
 
 	return nil
@@ -221,6 +224,7 @@ func (rs *RangeSet) String() string {
 	slices := rs.Slices()
 	for i, sli := range slices {
 		if sli.start+1 == sli.stop {
+			// rs.padding bug
 			buffer.WriteString(fmt.Sprintf("%0*d", rs.padding, sli.start))
 		} else {
 			buffer.WriteString(fmt.Sprintf("%0*d-%0*d", rs.padding, sli.start, rs.padding, sli.stop-1))
@@ -322,7 +326,6 @@ func (rs *RangeSetND) Update(other *RangeSetND) error {
 
 	rs.ranges = append(rs.ranges, other.ranges...)
 	rs.dirty = true
-
 	return nil
 }
 

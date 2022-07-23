@@ -73,7 +73,6 @@ func (ns *NodeSet) Add(nodestr string) error {
 		for i := ridx; i < ridx+rangeSetCount; i++ {
 			rangeSets = append(rangeSets, strings.Trim(ranges[i][1], "[]"))
 		}
-
 		rs, err := NewRangeSetND([][]string{rangeSets})
 		if err != nil {
 			return err
@@ -87,7 +86,6 @@ func (ns *NodeSet) Add(nodestr string) error {
 				return err
 			}
 		}
-
 		ridx += rangeSetCount
 	}
 
@@ -137,7 +135,6 @@ func (ns *NodeSet) toStringList() []string {
 			list = append(list, pattern.format)
 			continue
 		}
-
 		for _, params := range pattern.rangeSet.FormatList() {
 			list = append(list, fmt.Sprintf(pattern.format, params...))
 		}

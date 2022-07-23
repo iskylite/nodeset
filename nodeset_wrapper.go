@@ -1,6 +1,8 @@
 package nodeset
 
-import "strings"
+import (
+	"strings"
+)
 
 func Merge(nodestr ...string) (string, error) {
 	t1, err := NewNodeSet(strings.Join(nodestr, ","))
