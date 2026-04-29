@@ -35,6 +35,20 @@ type Slice struct {
 	pad   int
 }
 
+func maxPadding(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func zeroPaddingWidth(value string) int {
+	if len(value) > 1 && strings.HasPrefix(value, "0") {
+		return len(value)
+	}
+	return 0
+}
+
 func NewRangeSet(pattern string) (rs *RangeSet, err error) {
 	rs = &RangeSet{}
 	if len(pattern) == 0 {
@@ -93,24 +107,14 @@ func (rs *RangeSet) AddString(subrange string) (err error) {
 		return fmt.Errorf("cannont convert starting range to integer %s - %w", parts[0], ErrParseRangeSet)
 	}
 
-	// if start != 0 {
-	// 	begins := strings.TrimLeft(parts[0], "0")
-	// 	if len(parts[0])-len(begins) > 0 {
-	// 		pad = len(parts[0])
-	// 	}
-	// } else {
-	// 	if len(parts[0]) > 1 {
-	// 		pad = len(parts[0])
-	// 	}
-	// }
-	// pad is origin part length event has a 0 prefix
-	pad = len(parts[0])
+	pad = zeroPaddingWidth(parts[0])
 
 	if len(parts) == 2 {
 		stop, err = strconv.Atoi(parts[1])
 		if err != nil {
 			return fmt.Errorf("cannont convert ending range to integer %s - %w", parts[1], ErrParseRangeSet)
 		}
+		pad = maxPadding(pad, zeroPaddingWidth(parts[1]))
 	} else {
 		stop = start
 	}
@@ -133,9 +137,7 @@ func (rs *RangeSet) AddSlice(slice *Slice) error {
 		return fmt.Errorf("invalid range padding < 0 - %w", ErrInvalidRangeSet)
 	}
 
-	if slice.pad > 0 && rs.padding == 0 {
-		rs.padding = slice.pad
-	}
+	rs.padding = maxPadding(rs.padding, slice.pad)
 	rs.update(slice)
 
 	return nil
@@ -147,20 +149,22 @@ func (rs *RangeSet) Clone() *RangeSet {
 
 func (rs *RangeSet) Intersection(other *RangeSet) *RangeSet {
 	intersec := rs.bits.Intersection(&other.bits)
-	return &RangeSet{padding: rs.padding, bits: *intersec}
+	return &RangeSet{padding: maxPadding(rs.padding, other.padding), bits: *intersec}
 }
 
 func (rs *RangeSet) InPlaceIntersection(other *RangeSet) {
 	rs.bits.InPlaceIntersection(&other.bits)
+	rs.padding = maxPadding(rs.padding, other.padding)
 }
 
 func (rs *RangeSet) Union(other *RangeSet) *RangeSet {
 	union := rs.bits.Union(&other.bits)
-	return &RangeSet{padding: rs.padding, bits: *union}
+	return &RangeSet{padding: maxPadding(rs.padding, other.padding), bits: *union}
 }
 
 func (rs *RangeSet) InPlaceUnion(other *RangeSet) {
 	rs.bits.InPlaceUnion(&other.bits)
+	rs.padding = maxPadding(rs.padding, other.padding)
 }
 
 func (rs *RangeSet) Difference(other *RangeSet) *RangeSet {
@@ -174,11 +178,12 @@ func (rs *RangeSet) InPlaceDifference(other *RangeSet) {
 
 func (rs *RangeSet) SymmetricDifference(other *RangeSet) *RangeSet {
 	diff := rs.bits.SymmetricDifference(&other.bits)
-	return &RangeSet{padding: rs.padding, bits: *diff}
+	return &RangeSet{padding: maxPadding(rs.padding, other.padding), bits: *diff}
 }
 
 func (rs *RangeSet) InPlaceSymmetricDifference(other *RangeSet) {
 	rs.bits.InPlaceSymmetricDifference(&other.bits)
+	rs.padding = maxPadding(rs.padding, other.padding)
 }
 
 func (rs *RangeSet) Superset(other *RangeSet) bool {
@@ -427,7 +432,7 @@ func (nd *RangeSetND) foldMultivariateExpand() {
 				}
 
 				if rg1.Equal(rg2) {
-					newItem[pos] = rg1
+					newItem[pos] = rg1.Union(rg2)
 				} else {
 					// intersection
 					newItem[pos] = rg1Intersect
@@ -488,7 +493,7 @@ func (nd *RangeSetND) foldMultivariateMerge() {
 
 					rg1Intersect := rg1.Intersection(rg2)
 					if rg1.Equal(rg2) {
-						newItem[pos] = rg1.Clone()
+						newItem[pos] = rg1.Union(rg2)
 					} else if rg1Intersect.Empty() { // merge on disjoint ranges
 						nbDiff++
 						if nbDiff > 1 {

@@ -4,6 +4,52 @@ import (
 	"testing"
 )
 
+func TestMergePreservesLeadingZeroPadding(t *testing.T) {
+	tests := []struct {
+		name  string
+		nodes []string
+		want  string
+	}{
+		{
+			name:  "two padded nodes",
+			nodes: []string{"node001", "node002"},
+			want:  "node[001-002]",
+		},
+		{
+			name:  "padded node range across powers of ten",
+			nodes: []string{"node001", "node002", "node003", "node099", "node100"},
+			want:  "node[001-003,099-100]",
+		},
+		{
+			name:  "padded node range when wide endpoint is seen first",
+			nodes: []string{"node100", "node001", "node002", "node003"},
+			want:  "node[001-003,100]",
+		},
+		{
+			name:  "padded value merged after unpadded value",
+			nodes: []string{"node1", "node002"},
+			want:  "node[001-002]",
+		},
+		{
+			name:  "plain multi-digit value does not force zero padding",
+			nodes: []string{"node10", "node1"},
+			want:  "node[1,10]",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Merge(tt.nodes...)
+			if err != nil {
+				t.Fatalf("Merge() error = %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("Merge() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestMerge(t *testing.T) {
 	type args struct {
 		nodestr []string
