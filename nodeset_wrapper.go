@@ -37,7 +37,7 @@ func Yield(nodestr string) (*NodeSetIterator, error) {
 
 func Split(nodelist []string, w int) [][]string {
 	splitNodelist := make([][]string, 0)
-	if len(nodelist) == 0 {
+	if len(nodelist) == 0 || w <= 0 {
 		return splitNodelist
 	}
 	nodesNum := len(nodelist)
